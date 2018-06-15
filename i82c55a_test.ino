@@ -16,9 +16,112 @@
 // -CS               C2(16)
 // -RD               C3(17)
 // -WR               C4(18)
+// RESET             C5(19)
+
+// control pin bits (in port C)
+#define A0           (1 << 0)
+#define A1           (1 << 1)
+#define CS           (1 << 2) // active low
+#define RD           (1 << 3) // active low
+#define WR           (1 << 4) // active low
+#define RESET        (1 << 5)
+
+// Mask for address bits
+#define ADDR_MASK    0x03
+
+// Set the register address
+#define set_addr(reg) \
+do { PORTC = (PORTC & ~ADDR_MASK) | ((reg) & ADDR_MASK); } while (0)
+
+// limit speed of bus operations
+#define bus_delay() delayMicroseconds(1)
+
+// Initialize the 82C55A.
+void i82c55a_init(void) {
+  // in quiescent state, configure data port as all inputs
+  // with pullups enabled
+  DDRD = 0;
+  PORTD = 0xff;
+
+  // all pins on control port are configured for output
+  DDRC = 0xff;
+
+  // initially, A0/A1 are low, CS, RD, and WR are
+  // not asserted, RESET is asserted
+  PORTC = CS | RD | WR | RESET;
+
+  // wait a bit
+  delay(500);
+
+  // deassert reset
+  PORTC &= ~RESET;
+}
+
+// Write to an 82C55A register.
+// Parameters:
+//   reg - the register (0..3)
+//   val - the value to write
+void i82c55a_write(uint8_t reg, uint8_t val) {
+  // configure the data port for output
+  DDRD = 0xff;
+
+  // assert data
+  PORTD = val;
+
+  // assert register address
+  set_addr(reg);
+
+  // assert chip select
+  PORTC &= ~CS;
+  bus_delay();
+
+  // strobe the write signal
+  PORTC &= ~WR;
+  bus_delay();
+  PORTC |= WR;
+  bus_delay();
+
+  // deassert chip select
+  PORTC |= CS;
+  bus_delay();
+
+  // configure data port as input again
+  DDRD = 0;
+  PORTD = 0xff;
+}
+
+// Read from the 82C55A.
+// Parameters:
+//   reg - the register (0..3)
+// Returns:
+//   the value read
+uint8_t i82c55a_read(uint8_t reg) {
+  // assert register address
+  set_addr(reg);
+
+  // assert chip select
+  PORTC &= ~CS;
+  bus_delay();
+
+  // assert read signal
+  PORTC &= ~RD;
+  bus_delay();
+
+  // read the data
+  uint8_t val = PIND;
+  bus_delay();     // not sure if strictly necessary, but can't hurt
+
+  // deassert read signal
+  PORTC |= RD;
+  bus_delay();
+
+  // deassert chip select
+  PORTC |= CS;
+  bus_delay();
+}
 
 void setup() {
-  // put your setup code here, to run once:
+  i82c55a_init();
 
 }
 
