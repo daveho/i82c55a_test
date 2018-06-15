@@ -33,6 +33,33 @@
 #define set_addr(reg) \
 do { PORTC = (PORTC & ~ADDR_MASK) | ((reg) & ADDR_MASK); } while (0)
 
+// 82C55A registers
+#define REG_PORTA    0
+#define REG_PORTB    1
+#define REG_PORTC    2
+#define REG_CTRL     3
+
+// Control word bits
+// Note that "group A" is port A and port C upper,
+// and "group B" is port B and port C lower
+
+#define CTRL_MODESET                0x80     // set mode, if clear set/reset bit
+
+#define CTRL_GROUPA_MODE0           0        // group A: set mode 0
+#define CTRL_GROUPA_MODE1           0x20     // group A: set mode 1
+#define CTRL_GROUPA_MODE2           0x40     // group A: set mode 2
+#define CTRL_GROUPA_PORTA_IN        0x10     // group A: configure port A for input
+#define CTRL_GROUPA_PORTA_OUT       0        // group A: configure port A for output
+#define CTRL_GROUPA_PORTC_UPPER_IN  0x08     // group A: configure port C upper for input
+#define CTRL_GROUPA_PORTC_UPPER_OUT 0        // group A: configure port C upper for output
+
+#define CTRL_GROUPB_MODE0           0        // group B: set mode 0
+#define CTRL_GROUPB_MODE1           0x04     // group B: set mode 1
+#define CTRL_GROUPB_PORTB_IN        0x02     // group B: configure port B for input
+#define CTRL_GROUPB_PORTB_OUT       0        // group B: configure port B for output
+#define CTRL_GROUPB_PORTC_LOWER_IN  0x01     // group B: configure port C lower for input
+#define CTRL_GROUPB_PORTC_LOWER_OUT 0        // group B: configure port C lower for output
+
 // limit speed of bus operations
 #define bus_delay() delayMicroseconds(1)
 
@@ -123,9 +150,24 @@ uint8_t i82c55a_read(uint8_t reg) {
 void setup() {
   i82c55a_init();
 
+  // put all ports in mode 0, configure all ports for output
+  i82c55a_write(
+    REG_CTRL,
+    CTRL_MODESET
+      |CTRL_GROUPA_MODE0
+      |CTRL_GROUPA_PORTA_OUT
+      |CTRL_GROUPA_PORTC_UPPER_OUT
+      |CTRL_GROUPB_MODE0
+      |CTRL_GROUPB_PORTB_OUT
+      |CTRL_GROUPB_PORTC_LOWER_OUT);
+  bus_delay();
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
+// do a simple counting animation
+uint8_t anim = 0;
 
+void loop() {
+  i82c55a_write(REG_PORTA, anim);
+  anim++;
+  delay(200);
 }
