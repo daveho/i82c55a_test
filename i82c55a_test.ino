@@ -150,7 +150,8 @@ uint8_t i82c55a_read(uint8_t reg) {
 void setup() {
   i82c55a_init();
 
-  // put all ports in mode 0, configure all ports for output
+  // put all ports in mode 0, configure ports A and C for output,
+  // configure port B for input
   i82c55a_write(
     REG_CTRL,
     CTRL_MODESET
@@ -158,7 +159,7 @@ void setup() {
       |CTRL_GROUPA_PORTA_OUT
       |CTRL_GROUPA_PORTC_UPPER_OUT
       |CTRL_GROUPB_MODE0
-      |CTRL_GROUPB_PORTB_OUT
+      |CTRL_GROUPB_PORTB_IN
       |CTRL_GROUPB_PORTC_LOWER_OUT);
   bus_delay();
 }
