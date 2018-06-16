@@ -61,7 +61,7 @@ do { PORTC = (PORTC & ~ADDR_MASK) | ((reg) & ADDR_MASK); } while (0)
 #define CTRL_GROUPB_PORTC_LOWER_OUT 0        // group B: configure port C lower for output
 
 // limit speed of bus operations
-#define bus_delay() delayMicroseconds(1)
+#define bus_delay() delayMicroseconds(2)
 
 // Initialize the 82C55A.
 void i82c55a_init(void) {
@@ -145,6 +145,8 @@ uint8_t i82c55a_read(uint8_t reg) {
   // deassert chip select
   PORTC |= CS;
   bus_delay();
+
+  return val;
 }
 
 void setup() {
@@ -164,11 +166,18 @@ void setup() {
   bus_delay();
 }
 
+/*
 // do a simple counting animation
 uint8_t anim = 0;
+*/
 
 void loop() {
+  /*
   i82c55a_write(REG_PORTA, anim);
   anim++;
   delay(200);
+  */
+  // copy input read from DIP switch on port B to LEDs on port A
+  uint8_t val = i82c55a_read(REG_PORTB);
+  i82c55a_write(REG_PORTA, val);
 }
