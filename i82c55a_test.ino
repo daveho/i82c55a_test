@@ -18,6 +18,17 @@
 // -WR               C4(18)
 // RESET             C5(19)
 
+// The outputs of port A are used to drive LEDs, using
+// ULN2003A or ULN2803A transistor arrays (rather than
+// driving the LEDs directly via the 82C55A output pins,
+// which can only source or sink 2.5 mA according to the
+// data sheet.)
+
+// An 8 position DIP switch is connected to the pins of
+// port B.  When open, the switches are pulled low
+// (to ground) using 4k7 resistors.  When closed, the
+// switches are pulled high (to VCC.)
+
 // control pin bits (in port C)
 #define A0           (1 << 0)
 #define A1           (1 << 1)
